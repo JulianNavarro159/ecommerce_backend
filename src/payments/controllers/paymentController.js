@@ -39,7 +39,7 @@ const createOrder = async (req, res) => {
     const result = await mercadopago.preferences.create({
       items: body.items,
       payer: body.payer,
-      notification_url: "https://e794-2800-484-8977-3800-652e-12a4-dcac-704f.ngrok-free.app/payment/webhook",
+      notification_url: "https://0ed4-152-203-34-160.ngrok-free.app/payment/webhook",  
       back_urls: {
         success: "http://localhost:5173/user/order/",
         pending: "http://localhost:5173/contact/",
