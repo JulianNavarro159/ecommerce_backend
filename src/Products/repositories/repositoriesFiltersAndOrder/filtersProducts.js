@@ -69,6 +69,7 @@ const filtersProducts = async (properties, limit, offset, order) => {
         let categoryIds = Array.isArray(category) ? category : (typeof category === 'string' ? category.split(',').map(categoryId => parseInt(categoryId)) : [category]);
         console.log('categoryIds:', categoryIds); // Añadido para depuración
         if(Array.isArray(categoryIds)) { 
+            
             where.idCategory = {[Op.in]: categoryIds};
         }
         else where.idCategory = category
