@@ -1,66 +1,57 @@
 require("dotenv").config();
-const {Sequelize} = require('sequelize');
+const { Sequelize } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
-const {DB_USER, DB_PASSWORD, DB_HOST } = process.env;
 
-const entityProductsModels = require('./models/EntityProducts.js')
-const entityCategoryModels = require('./models/EntityCategory.js')
-const CharacteristicsProductsModels = require('./models/CharacteristicsProducts.js')
-const entityBrandModels = require('./models/EntityBrand');
-const entityUsersModels = require('./models/EntityUsers.js')
-const entityPaymentModels = require('./models/entityPayment.js')
-const entityShoppingSessionModels = require('./models/entityShoppingSession.js')
-const entityCartItemModels = require('./models/entityCartItem.js')
-const entityOrderDetailModels = require("./models/entityOrderDetail.js");
-const EntityOrderItemsModels = require('./models/entityCartItem.js')
-const EntityUserAddressModels= require('./models/entityUserAddress.js')
-const EntityReviewModels = require('./models/EntityReview.js')
-const EntityDiscountModels= require('./models/EntityDiscount.js')
-const EntityCommentsModels = require('./models/EntityComments.js')
-const EntityCoupon = require('./models/EntityCoupon.js')
-const EntityCouponUsage = require('./models/EntityCouponUsage.js')
-const entityShipments = require('./models/EntityShipments.js')
+const DB_URL = process.env.DATABASE_URL || "postgres://default:E6dD4JaFqZgN@ep-hidden-mouse-a4he5slk.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require";
 
-    const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/ecommerce`, {
-        logging: false,
-        native: false
+const sequelize = new Sequelize(DB_URL, {
+    logging: false,
+    native: false,
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false // Solo si tu base de datos requiere SSL
+        }
+    }
+});
+
+const basename = path.basename(__filename);
+
+const modelDefiners = [];
+
+// Definición de modelos
+require('./models/EntityProducts.js')(sequelize);
+require('./models/EntityCategory.js')(sequelize);
+require('./models/CharacteristicsProducts.js')(sequelize);
+require('./models/EntityBrand.js')(sequelize);
+require('./models/EntityUsers.js')(sequelize);
+require('./models/entityPayment.js')(sequelize);
+require('./models/entityShoppingSession.js')(sequelize);
+require('./models/entityCartItem.js')(sequelize);
+require('./models/entityOrderDetail.js')(sequelize);
+require('./models/entityCartItem.js')(sequelize);
+require('./models/entityUserAddress.js')(sequelize);
+require('./models/EntityReview.js')(sequelize);
+require('./models/EntityDiscount.js')(sequelize);
+require('./models/EntityComments.js')(sequelize);
+require('./models/EntityCoupon.js')(sequelize);
+require('./models/EntityCouponUsage.js')(sequelize);
+require('./models/EntityShipments.js')(sequelize);
+
+fs.readdirSync(path.join(__dirname, '/models'))
+    .filter((file) => (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js'))
+    .forEach((file) => {
+        modelDefiners.push(require(path.join(__dirname, '/models', file)));
     });
 
-    const basename = path.basename(__filename);
+modelDefiners.forEach(model => model(sequelize));
 
-    const modelDefiners = [];
-    entityProductsModels(sequelize)
-    entityCategoryModels(sequelize)
-    CharacteristicsProductsModels(sequelize)
-    entityBrandModels(sequelize)
-    entityUsersModels(sequelize)
-    entityPaymentModels(sequelize)
-    entityShoppingSessionModels(sequelize)
-    entityCartItemModels(sequelize)
-    entityOrderDetailModels(sequelize)
-    EntityOrderItemsModels(sequelize) 
-    EntityUserAddressModels(sequelize) 
-    EntityReviewModels(sequelize)
-    EntityDiscountModels(sequelize) 
-    EntityCommentsModels(sequelize)
-    EntityCoupon(sequelize)
-    EntityCouponUsage(sequelize)
-    entityShipments(sequelize)
+let entries = Object.entries(sequelize.models);
+let capsEntries = entries.map((entry) => [entry[0][0].toUpperCase() + entry[0].slice(1), entry[1]]);
+sequelize.models = Object.fromEntries(capsEntries);
 
-    fs.readdirSync(path.join(__dirname, '/models'))
-  .filter((file) => (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js'))
-  .forEach((file) => {
-    modelDefiners.push(require(path.join(__dirname, '/models', file)));
-  });
-
-  modelDefiners.forEach(model => model(sequelize));
-
-  let entries = Object.entries(sequelize.models);
-  let capsEntries = entries.map((entry) => [entry[0][0].toUpperCase() + entry[0].slice(1), entry[1]]);
-  sequelize.models = Object.fromEntries(capsEntries);
-
-  const { 
+const { 
     EntityProducts, 
     EntityCategory, 
     CharacteristicsProducts, 
@@ -149,6 +140,6 @@ EntityShipments.hasMany(EntityOrderDetail, { foreignKey: 'idShipment' });
 // EntityUserAddress.hasMany(EntityOrderDetail, { foreignKey: 'idUserAddress' });
 
 module.exports = {
-  ...sequelize.models, 
-  conn: sequelize,     
+    ...sequelize.models,
+    conn: sequelize,
 };
